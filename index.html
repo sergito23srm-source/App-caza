@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#24382c"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
+<title>Cuaderno de caza</title>
+<style>
+:root{--bg:#f2f3ed;--card:#fff;--ink:#1e2b22;--muted:#69766b;--green:#294735;--line:#dce2d8;--red:#a33d32}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+header{background:var(--green);color:white;padding:20px 18px 16px;position:sticky;top:0;z-index:3}header h1{font-size:22px;margin:0}header p{margin:5px 0 0;font-size:12px;opacity:.8}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:7px 3px calc(7px + env(safe-area-inset-bottom));z-index:5}
+nav button{border:0;background:none;color:var(--muted);font-size:11px;padding:5px 3px;flex:1}nav button.active{color:var(--green);font-weight:700}nav span{display:block;font-size:20px;margin-bottom:2px}
+main{padding:14px;max-width:760px;margin:auto}.page{display:none}.page.active{display:block}
+h2{font-size:20px;margin:8px 0 14px}.muted{color:var(--muted);font-size:13px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 2px 8px #1d2a1d08}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{background:white;border:1px solid var(--line);border-radius:13px;padding:13px}.stat b{font-size:23px;display:block}
+label{display:block;font-size:13px;font-weight:650;margin:11px 0 5px}input,textarea,select{width:100%;border:1px solid #cbd4c9;border-radius:10px;padding:11px;font:inherit;background:#fff;color:var(--ink)}textarea{min-height:76px;resize:vertical}
+button.primary,.primary{background:var(--green);color:white;border:0;border-radius:10px;padding:11px 14px;font-weight:650;font-size:14px}button.secondary{background:#e8eee7;color:var(--green);border:0;border-radius:10px;padding:10px 12px;font-weight:600}button.danger{background:#f8e9e7;color:var(--red);border:0;border-radius:9px;padding:8px 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.item{padding:11px 0;border-top:1px solid var(--line)}.item:first-child{border-top:0}.item strong{display:block}.tag{display:inline-block;background:#e9efe8;color:#31533c;padding:3px 8px;border-radius:20px;font-size:11px;margin:3px 3px 0 0}
+.notice{background:#fff7df;border:1px solid #efdfad;border-radius:12px;padding:12px;font-size:13px;line-height:1.4}.empty{color:var(--muted);font-size:13px;padding:14px 0}
+small{color:var(--muted)}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header><h1>📓 Cuaderno de caza</h1><p>Tu diario de jornadas, capturas, gastos y cotos</p></header>
+<main>
+<section id="inicio" class="page active">
+<h2>Resumen</h2>
+<div class="grid">
+<div class="stat"><b id="nJornadas">0</b><small>Jornadas</small></div><div class="stat"><b id="nCapturas">0</b><small>Capturas</small></div>
+<div class="stat"><b id="nCotos">0</b><small>Cotos guardados</small></div><div class="stat"><b id="nGastos">0 €</b><small>Gastos registrados</small></div>
+</div>
+<div class="card"><strong>Bienvenido a tu cuaderno</strong><p class="muted">Registra tus salidas y consulta las condiciones de cada coto. Haz copias periódicas en iCloud Drive desde el apartado Copias.</p></div>
+<div class="notice">Importante: las limitaciones que anotes son recordatorios personales. Comprueba siempre la normativa vigente, el plan técnico y las autorizaciones del coto antes de cazar.</div>
+</section>
+
+<section id="jornadas" class="page">
+<h2>Jornadas de caza</h2>
+<div class="card"><label>Fecha</label><input id="jFecha" type="date"><label>Coto</label><input id="jCoto" placeholder="Nombre del coto"><label>Modalidad</label><input id="jModalidad" placeholder="Media veda, menor, espera..."><label>Duración / horario</label><input id="jDuracion" placeholder="Ej. 7:00–12:00"><label>Observaciones</label><textarea id="jNotas" placeholder="Cómo ha ido la jornada..."></textarea><button class="primary" onclick="addJornada()">Guardar jornada</button></div>
+<div class="card" id="listaJornadas"></div>
+</section>
+
+<section id="capturas" class="page">
+<h2>Capturas y avistamientos</h2>
+<div class="card"><label>Fecha</label><input id="cFecha" type="date"><label>Especie</label><input id="cEspecie" placeholder="Conejo, paloma, zorzal..."><label>Coto / lugar</label><input id="cLugar" placeholder="Nombre del coto"><label>Cantidad</label><input id="cCantidad" type="number" min="0" value="1"><label>Tipo</label><select id="cTipo"><option>Captura</option><option>Avistamiento</option><option>Rastro</option></select><label>Notas</label><textarea id="cNotas"></textarea><button class="primary" onclick="addCaptura()">Guardar registro</button></div>
+<div class="card" id="listaCapturas"></div>
+</section>
+
+<section id="cotos" class="page">
+<h2>Cotos y limitaciones</h2>
+<div class="card"><label>Nombre del coto</label><input id="coNombre" placeholder="Ej. Coto TO-12.127"><label>Municipio</label><input id="coMunicipio" placeholder="Municipio"><label>Provincia</label><input id="coProvincia" placeholder="Toledo"><label>¿Tiene caza nocturna?</label><select id="coNocturna"><option value="No">No / No se sabe</option><option value="Sí">Sí</option><option value="Autorización específica">Solo con autorización específica</option></select><label>Condiciones de caza nocturna</label><textarea id="coCondNocturna" placeholder="Fechas, especies, horarios, permisos..."></textarea><label>Especies permitidas</label><textarea id="coPermitidas" placeholder="Conejo, paloma torcaz..."></textarea><label>Especies prohibidas o no autorizadas</label><textarea id="coProhibidas"></textarea><label>Días y horarios permitidos</label><textarea id="coHorarios"></textarea><label>Modalidades y restricciones</label><textarea id="coModalidades" placeholder="Esperas, recechos, puestos, perros..."></textarea><label>Zonas de seguridad / zonas excluidas</label><textarea id="coZonas"></textarea><label>Otras limitaciones y notas</label><textarea id="coOtras"></textarea><label>Fecha de revisión de la información</label><input id="coRevision" type="date"><button class="primary" onclick="addCoto()">Guardar coto</button></div>
+<div class="card" id="listaCotos"></div>
+</section>
+
+
+<section id="adjuntos" class="page">
+<h2>Fotografías y documentos</h2>
+<div class="card">
+<label>Archivo (fotografía o documento)</label><input id="aFile" type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.rtf" multiple>
+<label>Vincular a un coto o jornada</label><input id="aRelacion" placeholder="Ej. Coto TO-12.127 o jornada del 20/11">
+<label>Descripción</label><textarea id="aDescripcion" placeholder="Ej. Plano del coto, autorización, foto del puesto..."></textarea>
+<p class="muted">Puedes adjuntar fotografías, documentos PDF y archivos de Word o Excel. Se guardan dentro de esta aplicación en el dispositivo.</p>
+<button class="primary" onclick="addAttachments()">Añadir archivos</button>
+</div>
+<div class="card"><strong>Fotografías y documentos guardados</strong><div id="listaAdjuntos"></div></div>
+</section>
+
+<section id="gastos" class="page">
+<h2>Gastos</h2>
+<div class="card"><label>Fecha</label><input id="gFecha" type="date"><label>Concepto</label><input id="gConcepto" placeholder="Cuota del coto, munición, gasolina..."><label>Importe (€)</label><input id="gImporte" type="number" min="0" step="0.01"><label>Coto / categoría</label><input id="gCategoria" placeholder="Opcional"><button class="primary" onclick="addGasto()">Guardar gasto</button></div>
+<div class="card" id="listaGastos"></div>
+</section>
+
+<section id="copias" class="page">
+<h2>Copias en iCloud Drive</h2>
+<div class="notice"><b>Cómo funciona:</b> los datos de trabajo se guardan en el navegador de este iPhone. Al pulsar «Crear copia», se genera un archivo completo que podrás guardar en iCloud Drive. Para recuperar o pasar los datos a otro dispositivo, usa «Restaurar copia». No hay sincronización automática.</div>
+<div class="card"><strong>1. Crear copia de seguridad</strong><p class="muted">Genera un archivo de copia con tus jornadas, capturas, cotos y gastos.</p><button class="primary" onclick="backup()">Crear copia para iCloud</button></div>
+<div class="card"><strong>2. Restaurar una copia</strong><p class="muted">Elige un archivo de copia que hayas guardado anteriormente en iCloud Drive. La restauración sustituye los datos actuales y los adjuntos.</p><input id="restoreFile" type="file" accept=".json,application/json"><div class="actions"><button class="secondary" onclick="restore()">Restaurar copia seleccionada</button></div></div>
+<div class="card"><strong>Estado de los datos</strong><p id="backupStatus" class="muted">Los cambios se guardan automáticamente en este navegador.</p><button class="danger" onclick="clearAll()">Borrar todos los datos de este dispositivo</button></div>
+</section>
+</main>
+<nav>
+<button class="active" data-page="inicio" onclick="show('inicio',this)"><span>⌂</span>Inicio</button>
+<button data-page="jornadas" onclick="show('jornadas',this)"><span>🗓</span>Jornadas</button>
+<button data-page="capturas" onclick="show('capturas',this)"><span>🦌</span>Registros</button>
+<button data-page="cotos" onclick="show('cotos',this)"><span>🗺</span>Cotos</button>
+<button data-page="adjuntos" onclick="show('adjuntos',this)"><span>📎</span>Adjuntos</button>
+<button data-page="gastos" onclick="show('gastos',this)"><span>€</span>Gastos</button>
+<button data-page="copias" onclick="show('copias',this)"><span>☁</span>Copias</button>
+</nav>
+<script>
+const KEY='cuadernoCazaPWA_v1';
+let db=load();
+let attachmentMeta=[];
+const DB_NAME='CuadernoCazaFiles', STORE='files';
+function openFilesDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:'id'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+async function putFile(record){const d=await openFilesDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,'readwrite');tx.objectStore(STORE).put(record);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+async function getAllFiles(){const d=await openFilesDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,'readonly');const r=tx.objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result||[]);r.onerror=()=>reject(r.error);});}
+async function deleteFile(id){const d=await openFilesDB();return new Promise((resolve,reject)=>{const tx=d.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{jornadas:[],capturas:[],cotos:[],gastos:[]}}catch(e){return {jornadas:[],capturas:[],cotos:[],gastos:[]}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render();document.getElementById('backupStatus').textContent='Guardado localmente. Última modificación: '+new Date().toLocaleString('es-ES')+'. Recuerda crear una copia en iCloud.'}
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function val(x){return document.getElementById(x).value.trim()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function show(p,b){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===p));document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));window.scrollTo(0,0)}
+function addJornada(){if(!val('jFecha'))return alert('Indica la fecha.');db.jornadas.unshift({id:id(),fecha:val('jFecha'),coto:val('jCoto'),modalidad:val('jModalidad'),duracion:val('jDuracion'),notas:val('jNotas')});['jFecha','jCoto','jModalidad','jDuracion','jNotas'].forEach(x=>document.getElementById(x).value='');save()}
+function addCaptura(){if(!val('cEspecie'))return alert('Indica la especie.');db.capturas.unshift({id:id(),fecha:val('cFecha'),especie:val('cEspecie'),lugar:val('cLugar'),cantidad:Number(val('cCantidad')||1),tipo:val('cTipo'),notas:val('cNotas')});['cFecha','cEspecie','cLugar','cNotas'].forEach(x=>document.getElementById(x).value='');document.getElementById('cCantidad').value=1;save()}
+function addCoto(){if(!val('coNombre'))return alert('Indica el nombre del coto.');let o={id:id()};['coNombre','coMunicipio','coProvincia','coNocturna','coCondNocturna','coPermitidas','coProhibidas','coHorarios','coModalidades','coZonas','coOtras','coRevision'].forEach(k=>o[k]=val(k));db.cotos.unshift(o);['coNombre','coMunicipio','coProvincia','coCondNocturna','coPermitidas','coProhibidas','coHorarios','coModalidades','coZonas','coOtras','coRevision'].forEach(k=>document.getElementById(k).value='');document.getElementById('coNocturna').value='No';save()}
+function addGasto(){if(!val('gConcepto')||!val('gImporte'))return alert('Indica concepto e importe.');db.gastos.unshift({id:id(),fecha:val('gFecha'),concepto:val('gConcepto'),importe:Number(val('gImporte')),categoria:val('gCategoria')});['gFecha','gConcepto','gImporte','gCategoria'].forEach(x=>document.getElementById(x).value='');save()}
+function remove(type,i){if(confirm('¿Eliminar este registro?')){db[type]=db[type].filter(x=>x.id!==i);save()}}
+function list(type,render){let el=document.getElementById('lista'+({jornadas:'Jornadas',capturas:'Capturas',cotos:'Cotos',gastos:'Gastos'}[type]));el.innerHTML=db[type].length?db[type].map(render).join(''):'<div class="empty">Todavía no hay registros.</div>'}
+function delBtn(t,i){return `<button class="danger" onclick="remove('${t}','${i}')">Eliminar</button>`}
+function render(){
+document.getElementById('nJornadas').textContent=db.jornadas.length;document.getElementById('nCapturas').textContent=db.capturas.length;document.getElementById('nCotos').textContent=db.cotos.length;document.getElementById('nGastos').textContent=db.gastos.reduce((a,x)=>a+(+x.importe||0),0).toFixed(2)+' €';
+list('jornadas',x=>`<div class="item"><strong>${esc(x.fecha)} · ${esc(x.coto||'Sin coto asociado')}</strong><small>${esc(x.modalidad)} ${esc(x.duracion)}</small><p>${esc(x.notas)}</p>${delBtn('jornadas',x.id)}</div>`);
+list('capturas',x=>`<div class="item"><strong>${esc(x.especie)} · ${esc(x.cantidad)} (${esc(x.tipo)})</strong><small>${esc(x.fecha)} · ${esc(x.lugar)}</small><p>${esc(x.notas)}</p>${delBtn('capturas',x.id)}</div>`);
+list('cotos',x=>`<div class="item"><strong>${esc(x.coNombre)} · ${esc(x.coMunicipio)} (${esc(x.coProvincia)})</strong><span class="tag">Caza nocturna: ${esc(x.coNocturna)}</span><p><b>Condiciones nocturnas:</b> ${esc(x.coCondNocturna)}</p><p><b>Permitidas:</b> ${esc(x.coPermitidas)}</p><p><b>No autorizadas:</b> ${esc(x.coProhibidas)}</p><p><b>Días y horarios:</b> ${esc(x.coHorarios)}</p><p><b>Modalidades:</b> ${esc(x.coModalidades)}</p><p><b>Zonas:</b> ${esc(x.coZonas)}</p><p><b>Otras:</b> ${esc(x.coOtras)}</p><small>Revisado: ${esc(x.coRevision)}</small><div class="actions">${delBtn('cotos',x.id)}</div></div>`);
+list('gastos',x=>`<div class="item"><strong>${esc(x.concepto)} · ${(+x.importe).toFixed(2)} €</strong><small>${esc(x.fecha)} · ${esc(x.categoria)}</small><div class="actions">${delBtn('gastos',x.id)}</div></div>`);
+}
+async function addAttachments(){
+ const input=document.getElementById('aFile');const files=[...(input.files||[])];
+ if(!files.length)return alert('Selecciona al menos un archivo.');
+ for(const f of files){
+   if(f.size>12*1024*1024){alert('El archivo '+f.name+' supera 12 MB y se ha omitido.');continue;}
+   const idv=id();await putFile({id:idv,name:f.name,type:f.type||'application/octet-stream',size:f.size,relation:val('aRelacion'),description:val('aDescripcion'),createdAt:new Date().toISOString(),blob:f});
+ }
+ input.value='';document.getElementById('aRelacion').value='';document.getElementById('aDescripcion').value='';
+ await renderAttachments();alert('Archivos añadidos.');
+}
+async function renderAttachments(){
+ const el=document.getElementById('listaAdjuntos');if(!el)return;
+ try{const fs=await getAllFiles();attachmentMeta=fs;
+ el.innerHTML=fs.length?fs.sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).map(f=>`<div class="item"><strong>${esc(f.name)}</strong><small>${(f.size/1024/1024).toFixed(2)} MB · ${esc(f.relation||'Sin vincular')}</small><p>${esc(f.description||'')}</p><div class="actions"><button class="secondary" onclick="openAttachment('${f.id}')">Abrir o visualizar</button><button class="danger" onclick="removeAttachment('${f.id}')">Eliminar</button></div></div>`).join(''):'<div class="empty">Todavía no has añadido archivos.</div>';
+ }catch(e){el.textContent='No se pudieron leer los archivos guardados.'}
+}
+async function openAttachment(idv){const f=(await getAllFiles()).find(x=>x.id===idv);if(!f)return;const url=URL.createObjectURL(f.blob);const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+async function removeAttachment(idv){if(confirm('¿Eliminar este archivo?')){await deleteFile(idv);renderAttachments();}}
+function blobToDataURL(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});}
+function dataURLToBlob(data){const [head,b64]=data.split(',');const mime=(head.match(/data:(.*?);base64/)||[])[1]||'application/octet-stream';const bin=atob(b64);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+async function backup(){let files=await getAllFiles();let exported=[];for(const f of files){exported.push({id:f.id,name:f.name,type:f.type,size:f.size,relation:f.relation,description:f.description,createdAt:f.createdAt,data:await blobToDataURL(f.blob)});}let data={app:'Cuaderno de caza',version:2,createdAt:new Date().toISOString(),data:db,attachments:exported};let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});let url=URL.createObjectURL(blob);let a=document.createElement('a');a.href=url;a.download='Cuaderno-de-caza-copia-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);alert('Copia generada. En la hoja de compartir o descargas, elige Guardar en Archivos y selecciona iCloud Drive.')}
+async function restore(){let f=document.getElementById('restoreFile').files[0];if(!f)return alert('Selecciona primero el archivo de copia.');let r=new FileReader();r.onload=async()=>{try{let o=JSON.parse(r.result);if(!o.data||!Array.isArray(o.data.cotos)||!Array.isArray(o.data.jornadas))throw Error();if(!confirm('La copia sustituirá todos los datos actuales y sus adjuntos. ¿Continuar?'))return;db={jornadas:o.data.jornadas||[],capturas:o.data.capturas||[],cotos:o.data.cotos||[],gastos:o.data.gastos||[]};save();const existing=await getAllFiles();for(const x of existing)await deleteFile(x.id);for(const a of (o.attachments||[])){await putFile({id:a.id||id(),name:a.name,type:a.type,size:a.size,relation:a.relation,description:a.description,createdAt:a.createdAt,blob:dataURLToBlob(a.data)});}await renderAttachments();alert('Copia y adjuntos restaurados correctamente.')}catch(e){alert('No se reconoce el archivo como una copia válida del Cuaderno de caza.')}};r.readAsText(f)}
+function clearAll(){if(confirm('Esto borrará todos los datos guardados en este navegador. ¿Has hecho una copia en iCloud?')&&confirm('Confirmación final: borrar todos los datos?')){db={jornadas:[],capturas:[],cotos:[],gastos:[]};save()}}
+render();renderAttachments();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
